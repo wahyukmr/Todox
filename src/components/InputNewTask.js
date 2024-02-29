@@ -11,8 +11,8 @@ export default function InputNewTask() {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.inputNewTaskWrapper}>
-      <TextInput placeholder="Enter the task..." />
       {/* onChangeText={}  */}
+      <TextInput placeholder="Enter the task..." />
     </KeyboardAvoidingView>
   );
 }
