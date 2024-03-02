@@ -29,6 +29,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 15,
+    marginTop: 40,
+    marginBottom: 25,
   },
   bannerBorder: {
     marginHorizontal: 10,
@@ -44,7 +46,7 @@ const styles = StyleSheet.create({
     color: '#ffffa1',
   },
   bannerTextLower: {
-    fontSize: 18,
+    fontSize: 20,
     lineHeight: 28,
     color: '#ffffa1',
   },
