@@ -1,5 +1,6 @@
 import Banner from './Banner';
+import Header from './Header';
 import InputNewTask from './InputNewTask';
-import TaskItem from './TaskItem';
+import TaskList from './TaskList';
 
-export {Banner, InputNewTask, TaskItem};
+export {Banner, Header, InputNewTask, TaskList};
