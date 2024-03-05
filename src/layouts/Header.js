@@ -1,19 +1,28 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function Header() {
-  const [newNotification, setNewNotification] = useState(false);
-
+export default function Header({localTime, locationPermissionStatus}) {
+  const grantedAccess = locationPermissionStatus === 'granted';
   return (
     <View style={styles.headerWrapper}>
-      <View style={styles.TextWrapper}>
+      <View>
         <Text style={styles.textHeadline}>Today's tasks</Text>
-        {/* <TodayDate /> */}
+        {grantedAccess ? (
+          <Text style={styles.textFormatDate}>
+            {localTime ? localTime : 'Obtaining the date...'}
+          </Text>
+        ) : null}
       </View>
-      <TouchableOpacity style={styles.btnNotification}>
+      <TouchableOpacity
+        style={styles.btnNotification}
+        onPress={() => console.log(localTime)}>
         <Icon
-          name={newNotification ? 'bell-badge-outline' : 'bell-outline'}
+          name={
+            locationPermissionStatus !== 'granted'
+              ? 'bell-badge-outline'
+              : 'bell-outline'
+          }
           size={25}
           color="#1d1f21"
         />
@@ -29,15 +38,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  TextWrapper: {
-    backgroundColor: 'yellow',
-  },
   textHeadline: {
     fontSize: 24,
     lineHeight: 32,
     fontWeight: 'bold',
     color: '#1d1f21',
-    backgroundColor: 'red',
+  },
+  textFormatDate: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#444648',
   },
   btnNotification: {
     width: 50,

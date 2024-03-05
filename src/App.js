@@ -1,10 +1,31 @@
-import React from 'react';
-import {StatusBar, StyleSheet, Text, View, useColorScheme} from 'react-native';
-import {Banner, InputNewTask} from './components';
+import React, {useEffect} from 'react';
+import {StatusBar, StyleSheet, View, useColorScheme} from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
+import {useDateLocation} from './hooks';
+import {Banner, Header, InputNewTask, TaskList} from './layouts';
 
 export default function App() {
   const isDarkTheme = useColorScheme() === 'dark';
   const backgroundStyle = isDarkTheme ? '#1D1F21' : '#ffffff';
+
+  const {
+    locationPermissionStatus,
+    requestLocationPermission,
+    updateDateAtMidnight,
+    watchId,
+    localTime,
+  } = useDateLocation();
+
+  useEffect(() => {
+    requestLocationPermission();
+    updateDateAtMidnight();
+
+    return () => {
+      if (watchId !== null) {
+        Geolocation.clearWatch(watchId);
+      }
+    };
+  }, [locationPermissionStatus]);
 
   return (
     <View style={{...styles.container, backgroundStyle}}>
@@ -14,8 +35,12 @@ export default function App() {
         barStyle={isDarkTheme ? 'light-content' : 'dark-content'}
       />
       <View style={styles.contentWrapper}>
-        <Text style={styles.textHeadline}>Today's tasks</Text>
+        <Header
+          localTime={localTime}
+          locationPermissionStatus={locationPermissionStatus}
+        />
         <Banner />
+        <TaskList />
         <InputNewTask />
       </View>
     </View>
@@ -27,15 +52,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentWrapper: {
-    fontSize: 16,
-    lineHeight: 24,
-    paddingTop: 50,
+    marginTop: 70,
     paddingHorizontal: 20,
-  },
-  textHeadline: {
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: 'bold',
-    marginTop: 30,
   },
 });
