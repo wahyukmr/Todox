@@ -11,15 +11,13 @@ export default function App() {
   const {
     locationPermissionStatus,
     requestLocationPermission,
-    updateDateAtMidnight,
     watchId,
     localTime,
+    timezone,
   } = useDateLocation();
 
   useEffect(() => {
     requestLocationPermission();
-    updateDateAtMidnight();
-
     return () => {
       if (watchId !== null) {
         Geolocation.clearWatch(watchId);
@@ -37,6 +35,7 @@ export default function App() {
       <View style={styles.contentWrapper}>
         <Header
           localTime={localTime}
+          timezoneStatus={timezone.status}
           locationPermissionStatus={locationPermissionStatus}
         />
         <Banner />
