@@ -1,14 +1,17 @@
 import {API_KEY} from '@env';
 import {DateTime} from 'luxon';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Alert, PermissionsAndroid, Platform} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 
 export default function useDateLocation() {
   const [locationPermissionStatus, setLocationPermissionStatus] =
     useState('pending');
-  const [timezone, setTimezone] = useState(null);
-  const [localTime, setLocalTime] = useState();
+  const [timezone, setTimezone] = useState({
+    value: null,
+    status: '',
+  });
+  const [localTime, setLocalTime] = useState(null);
   const [watchId, setWatchId] = useState(null);
 
   const getFormattedDate = timezone => {
@@ -17,17 +20,36 @@ export default function useDateLocation() {
     );
   };
 
-  const getTimeZone = async position => {
-    try {
-      const fetchTimeonedb = await fetch(
-        `http://api.timezonedb.com/v2.1/get-time-zone?key=${API_KEY}&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`,
-      );
-      const resTimezonedb = await fetchTimeonedb.json();
-      setTimezone(resTimezonedb.zoneName);
-      getFormattedDate(timezone);
-    } catch (error) {
-      Alert.alert('Error', 'Unable to get user location: ' + error.message);
-    }
+  const getTimeZone = () => {
+    const id = Geolocation.watchPosition(
+      async position => {
+        console.log('babi');
+
+        try {
+          const fetchTimeonedb = await fetch(
+            `http://api.timezonedb.com/v2.1/get-time-zone?key=${API_KEY}&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`,
+          );
+          const resTimezonedb = await fetchTimeonedb.json();
+          setTimezone({status: 'available', value: resTimezonedb.zoneName});
+          getFormattedDate(timezone.value);
+        } catch (error) {
+          Alert.alert(
+            'Warning!',
+            'Unable to get user location: ' + error.message,
+          );
+          setTimezone(prevState => ({...prevState, status: 'not_found'}));
+        }
+      },
+      error => {
+        Alert.alert(
+          'Warning!',
+          'Unable to get user location: ' + error.message,
+        );
+        setTimezone(prevState => ({...prevState, status: 'not_found'}));
+      },
+      {distanceFilter: 1000, interval: 86400000},
+    );
+    setWatchId(id);
   };
 
   const requestLocationPermission = async () => {
@@ -47,22 +69,15 @@ export default function useDateLocation() {
               buttonPositive: 'OK',
             },
           );
+          console.log('status', status);
           setLocationPermissionStatus(status);
+          if (status !== 'granted') {
+            setTimezone(prevState => ({...prevState, status: 'not_found'}));
+          }
         }
-        if (locationPermissionStatus === 'granted') {
-          const id = Geolocation.watchPosition(
-            position => {
-              getTimeZone(position);
-            },
-            error => {
-              Alert.alert(
-                'Error',
-                'Unable to get user location: ' + error.message,
-              );
-            },
-            {distanceFilter: 1000, interval: 86400000},
-          );
-          setWatchId(id);
+        if (grantedAccess || locationPermissionStatus === 'granted') {
+          setLocationPermissionStatus('granted');
+          getTimeZone();
         }
       }
     } catch (error) {
@@ -79,15 +94,16 @@ export default function useDateLocation() {
     const msUntilMidnight = tomorrow.diff(now).as('milliseconds');
 
     setTimeout(() => {
-      getFormattedDate(timezone);
+      getFormattedDate(timezone.value);
       updateDateAtMidnight();
     }, msUntilMidnight);
   };
 
+  useEffect(() => updateDateAtMidnight(), []);
+
   return {
     locationPermissionStatus,
     requestLocationPermission,
-    updateDateAtMidnight,
     timezone,
     localTime,
     watchId,
