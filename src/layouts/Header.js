@@ -1,28 +1,58 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  Alert,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function Header({localTime, locationPermissionStatus}) {
-  const grantedAccess = locationPermissionStatus === 'granted';
+export default function Header({...props}) {
+  const {localTime, timezoneStatus, locationPermissionStatus} = props;
+  console.log(timezoneStatus);
+  console.log(locationPermissionStatus);
+
+  const dateAvailable =
+    (locationPermissionStatus === 'granted' &&
+      timezoneStatus === 'available') ||
+    locationPermissionStatus === 'pending';
+
+  const hideNotification =
+    locationPermissionStatus === 'granted' ||
+    locationPermissionStatus === 'pending' ||
+    timezoneStatus === 'available';
+
   return (
     <View style={styles.headerWrapper}>
       <View>
         <Text style={styles.textHeadline}>Today's tasks</Text>
-        {grantedAccess ? (
+        {dateAvailable && (
           <Text style={styles.textFormatDate}>
             {localTime ? localTime : 'Obtaining the date...'}
           </Text>
-        ) : null}
+        )}
       </View>
       <TouchableOpacity
         style={styles.btnNotification}
-        onPress={() => console.log(localTime)}>
-        <Icon
-          name={
-            locationPermissionStatus !== 'granted'
-              ? 'bell-badge-outline'
-              : 'bell-outline'
+        onPress={() => {
+          if (!hideNotification) {
+            Alert.alert(
+              'Location access permission is required',
+              'The app requires location access permission to optimize features. You must manually enable location access permissions in device settings.',
+              [
+                {
+                  text: 'open settings',
+                  onPress: async () => await Linking.openSettings(),
+                },
+                {text: 'Cancle', style: 'cancel'},
+              ],
+            );
           }
+        }}>
+        <Icon
+          name={hideNotification ? 'bell-outline' : 'bell-badge-outline'}
           size={25}
           color="#1d1f21"
         />
